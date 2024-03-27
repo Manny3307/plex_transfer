@@ -19,7 +19,7 @@ class FTPHelpers(dbFunction):
         html_str = ""
         super().__init__() #Call the constrcutor of the dbFucntion class
         ftps = FTP_TLS() #Initialize FTP object
-        dotenv_path = Path('/mnt/d/flex_transfer/conf/.env') #Load environment variable file
+        dotenv_path = Path('/home/manny/plex_transfer/conf/.env') #Load environment variable file
         load_dotenv(dotenv_path=dotenv_path)
         ftp_plex_server = os.getenv("FTP_server")
         ftp_plex_server_login = os.getenv("FTP_server_login")
@@ -61,7 +61,7 @@ class FTPHelpers(dbFunction):
         for file_names in uploaded_file_names:
             print(file_names)
         
-        with open('/mnt/d/flex_transfer/html/html_content.txt', 'w') as file_content:
+        with open('/home/manny/plex_transfer/html/html_content.txt', 'w') as file_content:
             file_content.write(html_str)
 
         ftps.close()

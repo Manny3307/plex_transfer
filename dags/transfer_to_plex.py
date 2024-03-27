@@ -5,6 +5,8 @@ from airflow.sensors.http_sensor import HttpSensor
 from airflow.operators.bash_operator import BashOperator
 from airflow.operators.python_operator import PythonOperator
 from airflow.operators.email_operator import EmailOperator
+import sys
+sys.path.append('/home/manny/plex_transfer')
 from helpers.db_helpers import dbFunction
 from helpers.ftp_helpers import FTPHelpers
 from datetime import datetime, timedelta
@@ -30,7 +32,7 @@ def add_filename_database():
 
 #Create and send the email to notify success or failure of the copy functions.
 def create_html_content(**kwargs):
-    with open('/mnt/d/flex_transfer/html/html_content.txt', 'r') as file_content:
+    with open('/home/manny/plex_transfer/html/html_content.txt', 'r') as file_content:
         email_content = file_content.read()
 
     send_email = EmailOperator(
@@ -95,7 +97,7 @@ with DAG(dag_id="Adding_Log_to_Database", schedule_interval=timedelta(minutes=5)
         fs_conn_id='fs_default',
         poke_interval=3,
         timeout=10,  
-        filepath='/mnt/f/masm', 
+        filepath='/media/manny/Backups/MASM', 
         dag=dag
     )
    

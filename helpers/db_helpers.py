@@ -10,7 +10,7 @@ class dbFunction(PlexHelperFunctions):
     
     def __init__(self):
         global DBConnecter, UserName, Password, ServerOrEndPoint, DatabaseName, connection_string, engine
-        DBConfig = open("./conf/db_conf.json")
+        DBConfig = open("/home/manny/plex_transfer/conf/db_conf.json")
         dbconf = json.load(DBConfig)
         DBConnector = dbconf["DBConfigs"]["postgresql"]["DBConnecter"]
         UserName = dbconf["DBConfigs"]["postgresql"]["UserName"]
