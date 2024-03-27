@@ -14,27 +14,27 @@ from pathlib import Path
 class PlexHelperFunctions:
     
     def __inti__(self):
-        conf_details = open("/home/manny/plex_transfer/conf/conf.json")
+        conf_details = open("/home/manny/plex_transfer/helpers/helper_config.json")
         genconf = json.load(conf_details)
         base_folder_name = genconf["base_folder"]["Folder"]
 
     #Get Configuration Value
     def get_conf_val(self, conf_holder):
-        conf_details = open("/home/manny/plex_transfer/conf/conf.json")
+        holder_value = ""
+        conf_details = open("/home/manny/plex_transfer/helpers/helper_config.json")
         genconf = json.load(conf_details)
-        if(conf_holder == "base_folder_name"):
-            holder_value = genconf["base_folder"]["Folder"]
+        holder_value = genconf[f"{conf_holder}"]["Folder"]
         return holder_value
     
     #Get the list of files in a directory
     def get_files(self):
-        base_folder_name = self.get_conf_val("base_folder_name")
+        base_folder_name = self.get_conf_val("base_folder")
         file_list = glob.glob(f"{base_folder_name}/*")
         return file_list
 
     #Get the last file added in a directory
     def get_last_file(self):
-        base_folder_name = self.get_conf_val("base_folder_name")
+        base_folder_name = self.get_conf_val("base_folder")
         file_list = glob.glob(f"{base_folder_name}/*")
         latest_file = max(file_list, key=os.path.getctime)
         return latest_file
@@ -61,6 +61,6 @@ class PlexHelperFunctions:
         for f in file_list:
             file_name_without_path = f.split("/")[-1]
             file_name_without_path = self.remove_special_chars_from_file_name(file_name_without_path)
-            base_folder_name = self.get_conf_val("base_folder_name")
+            base_folder_name = self.get_conf_val("base_folder")
             repl_file = f"{base_folder_name}/{file_name_without_path}"
             os.rename(f, repl_file)

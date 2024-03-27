@@ -121,5 +121,9 @@ print("Resultant list is : " + str(test_string))'''
 #obj_ftp = ftp
 #obj_plex.upload_to_plex()
 #obj_ftp.upload_to_plex()
-obj_db = dbFunction()
-obj_db.files_to_upload()
+#obj_db = dbFunction()
+#obj_db.files_to_upload()
+
+#home_folder = self.get_conf_val("home_folder")
+
+obj_ftp.upload_to_plex()

@@ -19,7 +19,9 @@ class FTPHelpers(dbFunction):
         html_str = ""
         super().__init__() #Call the constrcutor of the dbFucntion class
         ftps = FTP_TLS() #Initialize FTP object
-        dotenv_path = Path('/home/manny/plex_transfer/conf/.env') #Load environment variable file
+        home_folder = self.get_conf_val("home_folder")
+        print(home_folder)
+        dotenv_path = Path(f'{home_folder}/conf/.env') #Load environment variable file
         load_dotenv(dotenv_path=dotenv_path)
         ftp_plex_server = os.getenv("FTP_server")
         ftp_plex_server_login = os.getenv("FTP_server_login")
@@ -33,7 +35,7 @@ class FTPHelpers(dbFunction):
         FTP_Path = os.getenv('FTP_server_folder_path')
         ftps.cwd(FTP_Path)
         f_names = self.get_file_names_from_database()
-        base_folder_name = self.get_conf_val("base_folder_name")
+        base_folder_name = self.get_conf_val("base_folder")
         print("+++++++++++++++ Start uploading the files to Plex Server ++++++++++++++++++")
         if not f_names:
             html_str = f"<h3>No file(s) to upload at {datetime.datetime.now()}</h3> </br><ol>"    
@@ -61,7 +63,7 @@ class FTPHelpers(dbFunction):
         for file_names in uploaded_file_names:
             print(file_names)
         
-        with open('/home/manny/plex_transfer/html/html_content.txt', 'w') as file_content:
+        with open(f'{home_folder}/html/html_content.txt', 'w') as file_content:
             file_content.write(html_str)
 
         ftps.close()

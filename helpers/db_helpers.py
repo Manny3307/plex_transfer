@@ -3,6 +3,8 @@ from helpers.file_transfer_helpers import PlexHelperFunctions
 from sqlalchemy import create_engine
 import sqlalchemy as db
 import datetime, dateutil
+import sys
+sys.path.append('/home/manny/plex_transfer')
 
 
 #Perform the database functions to send and retrieve the data from database.
@@ -10,7 +12,7 @@ class dbFunction(PlexHelperFunctions):
     
     def __init__(self):
         global DBConnecter, UserName, Password, ServerOrEndPoint, DatabaseName, connection_string, engine
-        DBConfig = open("/home/manny/plex_transfer/conf/db_conf.json")
+        DBConfig = open("/home/manny/plex_transfer/helpers/helper_db_config.json")
         dbconf = json.load(DBConfig)
         DBConnector = dbconf["DBConfigs"]["postgresql"]["DBConnecter"]
         UserName = dbconf["DBConfigs"]["postgresql"]["UserName"]
@@ -100,7 +102,8 @@ class dbFunction(PlexHelperFunctions):
                         files_list.append(fl_name)
                         
                     for file_n in files_list:
-                        self.insert_new_file_record(file_n)
+                        if "crdownload" not in file_n:
+                            self.insert_new_file_record(file_n)
 
         except Exception as error: 
             print("Connection Refused")
