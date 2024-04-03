@@ -13,7 +13,8 @@ from helpers.db_helpers import dbFunction
 from helpers.file_transfer_helpers import PlexHelperFunctions
 from helpers.ftp_helpers import FTPHelpers
 import glob
-
+from plexapi.myplex import MyPlexAccount
+from plexapi.server import PlexServer
 
 obj_plex = PlexHelperFunctions()
 #obj_db = dbFunction()
@@ -121,9 +122,22 @@ print("Resultant list is : " + str(test_string))'''
 #obj_ftp = ftp
 #obj_plex.upload_to_plex()
 #obj_ftp.upload_to_plex()
-#obj_db = dbFunction()
-#obj_db.files_to_upload()
+obj_db = dbFunction()
+obj_db.files_to_upload()
 
 #home_folder = self.get_conf_val("home_folder")
 
-obj_ftp.upload_to_plex()
+#obj_ftp.upload_to_plex()
+
+'''account = MyPlexAccount('mannydaniels1@gmail.com', 'Pikolo_3307')
+plex = account.resource('192.168.0.168').connect()  # returns a PlexServer instance
+print(plex)
+'''
+'''
+baseurl = 'http://192.168.0.168:32400'
+token = 'fxa_vX4sgNNkSzNbMiyP'
+plex = PlexServer(baseurl, token)
+
+vids  = plex.library.section('Manny')
+print(vids.search('faphouse'))
+'''

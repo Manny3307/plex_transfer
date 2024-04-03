@@ -7,6 +7,7 @@ from tqdm import tqdm
 from dotenv import load_dotenv
 import ftplib
 from pathlib import Path
+from plexapi.server import PlexServer
 
 
 class FTPHelpers(dbFunction):
@@ -69,3 +70,26 @@ class FTPHelpers(dbFunction):
         ftps.close()
         ftps = None
         print("+++++++++++++++ Above file(s) uploaded to Plex Server Successfully ++++++++++++++++++")
+
+        print("+++++++++++++++ Start scanning the files into the Library on the Plex Server ++++++++++++++++++")
+        self.update_plex_server()
+        print("+++++++++++++++ Finished scanning the files successfully into the Library on the Plex Server ++++++++++++++++++")
+
+    #Update the Plex Server after copying files to it.
+    def update_plex_server(self):
+        home_folder = self.get_conf_val("home_folder")
+        dotenv_path = Path(f'{home_folder}/conf/.env') #Load environment variable file
+        load_dotenv(dotenv_path=dotenv_path)
+
+        Plex_server_host = os.getenv("Plex_server_host")
+        Plex_server_port = os.getenv("Plex_server_port")
+        Plex_server_token = os.getenv("Plex_server_token")
+        try:
+            baseurl = f'http://{Plex_server_host}:{Plex_server_port}'
+            plex = PlexServer(baseurl, Plex_server_token)
+
+            vids  = plex.library.section('Manny')
+            vids.update()
+        except Exception as e:
+            print(e)
+            print("Connection Failed. Please try to login into the Plex Server using the browser")
