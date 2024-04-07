@@ -14,14 +14,11 @@ class FTPHelpers(dbFunction):
 
     def __init__(self):
         global uploaded_file_names
-
-    #Files to upload to Plex Server
-    def upload_to_plex(self):
-        html_str = ""
-        super().__init__() #Call the constrcutor of the dbFucntion class
+    
+    #Get the FTP object 
+    def get_ftp_object(self):
         ftps = FTP_TLS() #Initialize FTP object
         home_folder = self.get_conf_val("home_folder")
-        print(home_folder)
         dotenv_path = Path(f'{home_folder}/conf/.env') #Load environment variable file
         load_dotenv(dotenv_path=dotenv_path)
         ftp_plex_server = os.getenv("FTP_server")
@@ -32,11 +29,30 @@ class FTPHelpers(dbFunction):
         except Exception as e:
             print(e)    
             print("Login Failed!!!")
+
+        return ftps
+    
+    #Get the Environment Holder Value 
+    def get_environ_val(self, environ_holder):
+        environ_value = ""
+        home_folder = self.get_conf_val("home_folder")
+        dotenv_path = Path(f'{home_folder}/conf/.env') #Load environment variable file
+        load_dotenv(dotenv_path=dotenv_path)
+        environ_value = os.getenv(environ_holder)
+        
+        return environ_value
+
+    #Files to upload to Plex Server
+    def upload_to_plex(self):
+        html_str = ""
+        super().__init__() #Call the constrcutor of the dbFucntion class
+        ftps = self.get_ftp_object()
         uploaded_file_names = []
-        FTP_Path = os.getenv('FTP_server_folder_path')
+        FTP_Path = self.get_environ_val('FTP_server_folder_path')
         ftps.cwd(FTP_Path)
         f_names = self.get_file_names_from_database()
         base_folder_name = self.get_conf_val("base_folder")
+        home_folder = self.get_conf_val("home_folder")
         print("+++++++++++++++ Start uploading the files to Plex Server ++++++++++++++++++")
         if not f_names:
             html_str = f"<h3>No file(s) to upload at {datetime.datetime.now()}</h3> </br><ol>"    
@@ -93,3 +109,38 @@ class FTPHelpers(dbFunction):
         except Exception as e:
             print(e)
             print("Connection Failed. Please try to login into the Plex Server using the browser")
+
+    #Validate the file copying process to check if all the files 
+    #local files are in sync with Plex Media Server files.
+    def validate_plex_server_uploads(self):
+        html_content = "<html><head></head><body><table width='50%' cellpadding='5px' border='0'><tr><th style='text-align:left'>S.No</th><th>File Name</th><th style='text-align:left'>Local File Size</th><th style='text-align:left'>Server File Size</th><th style='text-align:left'>Status</th></tr>"
+        home_folder = self.get_conf_val("home_folder")
+        ftps = self.get_ftp_object()
+        file_lst = self.get_files()
+        counter = 0
+        Plex_media_server_Path = self.get_environ_val('FTP_server_folder_path')
+        ftps.cwd(Plex_media_server_Path)
+        for fl in file_lst:
+            file_name = fl.split('/')[-1]
+            complete_file_name = os.stat(fl)
+            if file_name in ftps.nlst():
+                local_file_size = complete_file_name.st_size
+                server_file_size = ftps.size(f'{Plex_media_server_Path}/{file_name}')
+
+                if(local_file_size == server_file_size):
+                    counter += 1
+                    html_content += f"<tr><td>{counter}.</td><td style='word-wrap: break-word;'>{file_name}</td><td>{local_file_size}</td><td>{server_file_size}</td><td style='color: green;'>✔</td></tr>"
+                    print(f'{file_name}  -   {local_file_size}   -   {server_file_size}  -- Corrrect')
+                else:
+                    counter += 1
+                    html_content += f"<tr><td>{counter}.</td><td style='word-wrap: break-word;'>{file_name}</td><td>{local_file_size}</td><td>{server_file_size}</td><td style='color: red;'>✘</td></tr>"
+                    print(f'{file_name}  -   {local_file_size}   -   {server_file_size}  -- Discrepancy')
+
+
+         
+        html_content += "</table></body></html>" 
+
+        with open(f'{home_folder}/tests/test.html', 'w') as file_content:
+            file_content.write(html_content)
+
+        return html_content

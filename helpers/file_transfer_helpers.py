@@ -64,3 +64,14 @@ class PlexHelperFunctions:
             base_folder_name = self.get_conf_val("base_folder")
             repl_file = f"{base_folder_name}/{file_name_without_path}"
             os.rename(f, repl_file)
+    
+    #Only Include the media files and leave the rest
+    def include_file_names(self, file_name):
+        included_file_name = ""
+        included_file_list_extensions = ['mov', 'avi', 'mp4', 'swf', 'flv', 'f4v', 'wmv', 'webm', 'avchd', 'mkv', 'm2ts', 'tiff', 'flac', 'gif', 'jpeg', 'mp3', 'svg', 'wav']
+        file_extension = file_name.split('.')[-1]
+        if(file_extension in included_file_list_extensions):
+            included_file_name = file_name
+        else:
+            included_file_name = "Not a valid file"
+        return included_file_name

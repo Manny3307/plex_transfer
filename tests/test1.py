@@ -15,6 +15,7 @@ from helpers.ftp_helpers import FTPHelpers
 import glob
 from plexapi.myplex import MyPlexAccount
 from plexapi.server import PlexServer
+import math
 
 obj_plex = PlexHelperFunctions()
 #obj_db = dbFunction()
@@ -122,8 +123,8 @@ print("Resultant list is : " + str(test_string))'''
 #obj_ftp = ftp
 #obj_plex.upload_to_plex()
 #obj_ftp.upload_to_plex()
-obj_db = dbFunction()
-obj_db.files_to_upload()
+#obj_db = dbFunction()
+#obj_db.files_to_upload()
 
 #home_folder = self.get_conf_val("home_folder")
 
@@ -141,3 +142,18 @@ plex = PlexServer(baseurl, token)
 vids  = plex.library.section('Manny')
 print(vids.search('faphouse'))
 '''
+#print(obj_plex.include_file_names("tempfile_781925218_2"))
+
+'''file_size = ftps.size('/New/faphouse.com-i-want-to-drink-your-orgasm-sweetheart-p1080.mp4')
+file_size = file_size / (1024 * 1024)
+rounded_filesize = round(file_size,2)
+if(rounded_filesize > 1000):
+     rounded_filesize = rounded_filesize / 1000
+
+print(f'File Size at Plex Server {ftps.size("/New/faphouse.com-i-want-to-drink-your-orgasm-sweetheart-p1080.mp4")}')
+
+
+fl = os.stat('/media/manny/Backups/MASM/faphouse.com-i-want-to-drink-your-orgasm-sweetheart-p1080.mp4')
+print(f'File Size at local system {fl.st_size}')
+'''
+obj_ftp.validate_plex_server_uploads()

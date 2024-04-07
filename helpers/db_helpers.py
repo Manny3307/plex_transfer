@@ -85,6 +85,10 @@ class dbFunction(PlexHelperFunctions):
         #get the list of the files in the base folder or source folder
         for lst in file_list_without_special_chars:
             filename = lst.split('/')[-1]
+            Actual_fl_name = f'{base_folder_name}/{filename}'
+            filename = self.remove_special_chars_from_file_name(str(filename))
+            chars_removed_fl_name = f'{base_folder_name}/{filename}'
+            os.rename(Actual_fl_name, chars_removed_fl_name)
             str_file_name_rounded = f"('{filename}'),"
             str_file_name += str_file_name_rounded
         
@@ -96,21 +100,14 @@ class dbFunction(PlexHelperFunctions):
                 if not files_to_upload:
                     print(f"Server is up to date and no files required to upload")
                 else:
-                    #print(f"Following are the files to upload {files_to_upload}")
-                    #print(files_to_upload)
+                    print(f"Following are the files to upload \n {files_to_upload}")
                     for fl_name in files_to_upload:
-                        #fl_name = str(fl_name).replace("(","").replace(")","").replace(",","").replace("'","")
                         fl_name = ''.join(i for i in fl_name if not i in special_chars)
-                        #fl_name = str(fl_name.replace('(', '').replace(')', '').replace("'", "").replace(',', ''))
-                        Actual_fl_name = f'{base_folder_name}/{fl_name}'
-                        fl_name = self.remove_special_chars_from_file_name(str(fl_name))
-                        chars_removed_fl_name = f'{base_folder_name}/{fl_name}'
-                        os.rename(Actual_fl_name, chars_removed_fl_name)
-                        files_list.append(chars_removed_fl_name.split('/')[-1])
-                        print(files_list)
-                    
+                        files_list.append(fl_name.split('/')[-1])
+
                     for file_n in files_list:
-                        if "crdownload" not in file_n:
+                        include_file_name = self.include_file_names(file_n)
+                        if include_file_name == file_n:
                             self.insert_new_file_record(file_n)
 
         except Exception as error: 

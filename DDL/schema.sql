@@ -19,7 +19,8 @@ CREATE TABLE tbl_File_Batch_Info(
 	file_id  		INT	GENERATED ALWAYS AS IDENTITY,
 	file_name		VARCHAR(1000) NOT NULL,
 	batch_id		VARCHAR(20) NOT NULL,
-	file_date_time	TIMESTAMP
+	file_date_time	TIMESTAMP,
+    is_executed     BOOLEAN
 )
 
 
