@@ -53,6 +53,7 @@ class FTPHelpers(dbFunction):
         f_names = self.get_file_names_from_database()
         base_folder_name = self.get_conf_val("base_folder")
         home_folder = self.get_conf_val("home_folder")
+        #print(f_names)
         print("+++++++++++++++ Start uploading the files to Plex Server ++++++++++++++++++")
         if not f_names:
             html_str = f"<h3>No file(s) to upload at {datetime.datetime.now()}</h3> </br><ol>"    
@@ -60,8 +61,31 @@ class FTPHelpers(dbFunction):
             html_str = f"<h3>Following file(s) have been uploaded to Plex Server.</h3> </br><ol>"    
         try:
             for file_n in f_names:
-                complete_file_path = f"{base_folder_name}/{file_n}"
-                filename_without_path = file_n
+                ftps.cwd(FTP_Path)
+                complete_file_path_with_fname = file_n.split('|')
+                complete_file_path = f"{complete_file_path_with_fname[1]}/{complete_file_path_with_fname[0]}"
+                #print(complete_file_path)
+                filename_without_path = complete_file_path_with_fname[0]
+                #print(filename_without_path)
+                #Local path in the filesystem with the file name
+                ftp_server_folder_path = complete_file_path_with_fname[1] 
+                #print(ftp_server_folder_path)
+                #Replace local path to start uploading to Plex Server path
+                ftp_server_folder_path = ftp_server_folder_path.replace(base_folder_name, FTP_Path) 
+                #print(ftp_server_folder_path)
+                if ftp_server_folder_path != FTP_Path:
+                    actual_folder_name = ftp_server_folder_path.split('/')
+                    actual_folder_name = actual_folder_name[len(actual_folder_name) - 1]
+                    server_folder_path_without_current_folder = ftp_server_folder_path.replace(f"/{actual_folder_name}", '')
+                    ftps.cwd(server_folder_path_without_current_folder)
+                    
+                    if actual_folder_name not in ftps.nlst():
+                        #print(ftp_server_folder_path)
+                        ftps.mkd(ftp_server_folder_path)
+                        ftps.cwd(ftp_server_folder_path)
+                    else:
+                        ftps.cwd(ftp_server_folder_path)
+                
                 filesize = int(os.path.getsize(complete_file_path))
                 TheFile = open(complete_file_path, 'rb')
                 with tqdm(unit = 'blocks', unit_scale = True, leave = False, miniters = 1, desc = f'Uploading {file_n}......', total = filesize) as tqdm_instance:
@@ -69,14 +93,14 @@ class FTPHelpers(dbFunction):
                 uploaded_file_names.append(filename_without_path)
                 html_str += f"<li>{filename_without_path}</li>"
                 self.update_isExecuted_flag_against_file_name(filename_without_path)
-
+                    
             html_str += "</ol>"
             
         except Exception as e:
             print(e)
             print("Upload error. Please try again")
         
-        
+        print(html_str)
         for file_names in uploaded_file_names:
             print(file_names)
         
@@ -130,14 +154,12 @@ class FTPHelpers(dbFunction):
                 if(local_file_size == server_file_size):
                     counter += 1
                     html_content += f"<tr><td>{counter}.</td><td style='word-wrap: break-word;'>{file_name}</td><td>{local_file_size}</td><td>{server_file_size}</td><td style='color: green;'>✔</td></tr>"
-                    print(f'{file_name}  -   {local_file_size}   -   {server_file_size}  -- Corrrect')
+                    #print(f'{file_name}  -   {local_file_size}   -   {server_file_size}  -- Corrrect')
                 else:
                     counter += 1
                     html_content += f"<tr><td>{counter}.</td><td style='word-wrap: break-word;'>{file_name}</td><td>{local_file_size}</td><td>{server_file_size}</td><td style='color: red;'>✘</td></tr>"
-                    print(f'{file_name}  -   {local_file_size}   -   {server_file_size}  -- Discrepancy')
+                    #print(f'{file_name}  -   {local_file_size}   -   {server_file_size}  -- Discrepancy')
 
-
-         
         html_content += "</table></body></html>" 
 
         with open(f'{home_folder}/tests/test.html', 'w') as file_content:

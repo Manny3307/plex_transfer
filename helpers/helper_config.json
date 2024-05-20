@@ -1,4 +1,5 @@
 {
     "base_folder": {"Folder": "/media/manny/Backups/MASM"},
+    "zips_folder": {"Folder": "/media/manny/Backups/MASM/zips"},
     "home_folder": {"Folder": "/home/manny/plex_transfer"}
 }

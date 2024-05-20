@@ -4,6 +4,7 @@ from sqlalchemy import create_engine
 import sqlalchemy as db
 import datetime, dateutil
 import sys, os
+import pandas as pd
 sys.path.append('/home/manny/plex_transfer')
 
 
@@ -22,12 +23,12 @@ class dbFunction(PlexHelperFunctions):
         engine = create_engine(f'{DBConnector}://{UserName}:{Password}@{ServerOrEndPoint}/{DatabaseName}')
 
     #Insert a new file record in database
-    def insert_new_file_record(self, filename):
+    def insert_new_file_record(self, filename, folder_path):
         is_row_inserted = True
         is_executed = False
         batch_id = self.get_batch_id_from_database()
         try:
-            insert_new_file_record_query = f"INSERT INTO tbl_File_Batch_info (file_name, batch_id, file_date_time, is_executed) VALUES ('{filename}','{batch_id}',CURRENT_TIMESTAMP, '{is_executed}')"
+            insert_new_file_record_query = f"INSERT INTO tbl_File_Batch_info (file_name, batch_id, file_date_time, is_executed, local_file_path) VALUES ('{filename}','{batch_id}',CURRENT_TIMESTAMP, '{is_executed}', '{folder_path}')"
             with engine.connect() as conn:
                 insert_new_file_record = conn.execute(db.text(insert_new_file_record_query))
         except Exception as error: 
@@ -78,21 +79,13 @@ class dbFunction(PlexHelperFunctions):
     def files_to_upload(self):
         files_list = []
         str_file_name = ""
+        file_n = ""
+        folder_path = ""
         base_folder_name = self.get_conf_val("base_folder")
         special_chars = ["(",")","'",","]
 
-        file_list_without_special_chars = self.get_files()
-        #get the list of the files in the base folder or source folder
-        for lst in file_list_without_special_chars:
-            filename = lst.split('/')[-1]
-            Actual_fl_name = f'{base_folder_name}/{filename}'
-            filename = self.remove_special_chars_from_file_name(str(filename))
-            chars_removed_fl_name = f'{base_folder_name}/{filename}'
-            os.rename(Actual_fl_name, chars_removed_fl_name)
-            str_file_name_rounded = f"('{filename}'),"
-            str_file_name += str_file_name_rounded
-        
-        str_file_name = str_file_name[:-1]
+        file_list_without_special_chars = self.get_all_filenames_for_query()
+        str_file_name = file_list_without_special_chars
         try:
             get_batch_id_query = f"SELECT v FROM (VALUES {str_file_name}) AS vs(v) WHERE v NOT IN (SELECT file_name FROM tbl_File_Batch_info)"
             with engine.connect() as conn:
@@ -100,16 +93,20 @@ class dbFunction(PlexHelperFunctions):
                 if not files_to_upload:
                     print(f"Server is up to date and no files required to upload")
                 else:
-                    print(f"Following are the files to upload \n {files_to_upload}")
+                    #print(f"Following are the files to upload \n {files_to_upload}")
                     for fl_name in files_to_upload:
                         fl_name = ''.join(i for i in fl_name if not i in special_chars)
                         files_list.append(fl_name.split('/')[-1])
-
-                    for file_n in files_list:
+                    
+                    all_files_names = self.get_all_files()
+                    filtered_files_names = all_files_names[all_files_names["filename"].isin(files_list)]
+                    for index, row in filtered_files_names.iterrows():
+                        file_n = row["filename"]
+                        folder_path = row["fullpath"]
                         include_file_name = self.include_file_names(file_n)
                         if include_file_name == file_n:
-                            self.insert_new_file_record(file_n)
-
+                            self.insert_new_file_record(file_n, folder_path)
+                    
         except Exception as error: 
             print("Connection Refused")
             print(error)
@@ -120,14 +117,15 @@ class dbFunction(PlexHelperFunctions):
     #Get filenames from the database which are not uploaded to Plex Server
     def get_file_names_from_database(self):
         clean_lst_from_special_chars = []
-        get_batch_id_query = f"SELECT file_name FROM tbl_File_Batch_info WHERE is_executed = False"
+        special_chars = ["(",")",","]
+        get_batch_id_query = f"SELECT file_name, local_file_path FROM tbl_File_Batch_info WHERE is_executed = False ORDER BY local_file_path"
         try:
             with engine.connect() as conn:
                 get_files_to_upload = conn.execute(db.text(get_batch_id_query)).fetchall()
                 
-                for f in get_files_to_upload:
-                    f = self.remove_special_chars_from_file_name(str(f))
-                    clean_lst_from_special_chars.append(f)
+                for fl_name in get_files_to_upload:
+                    fl_name = '|'.join(i for i in fl_name if not i in special_chars)
+                    clean_lst_from_special_chars.append(fl_name)
                     
                 
         except Exception as e:

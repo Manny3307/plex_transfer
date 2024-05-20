@@ -32,8 +32,6 @@ obj_plex = PlexHelperFunctions()
 
 obj_ftp = FTPHelpers()
 
-ftps = FTP_TLS()
-ftps = ftplib.FTP('192.168.0.168', 'Manny', 'manny')
 #ftps.dir()
 
 def files_to_upload_to_plex():
@@ -156,4 +154,169 @@ print(f'File Size at Plex Server {ftps.size("/New/faphouse.com-i-want-to-drink-y
 fl = os.stat('/media/manny/Backups/MASM/faphouse.com-i-want-to-drink-your-orgasm-sweetheart-p1080.mp4')
 print(f'File Size at local system {fl.st_size}')
 '''
-obj_ftp.validate_plex_server_uploads()
+#obj_ftp.validate_plex_server_uploads()
+
+'''
+from os import walk
+folder_path = ""
+# folder path
+dir_path = r'/media/manny/Backups/MASM'
+
+# list to store files name
+res = []
+for (dir_path, dir_names, file_names) in walk(dir_path):
+    for fln in file_names:
+        res.append(os.path.join(dir_path,fln))
+    
+for r in res:
+    if "dika_badony.zip" in r:
+        #folder_path = os.path.abspath(r)
+        folder_path = os.path.dirname(os.path.abspath(r))
+
+
+
+
+print(folder_path)'''
+#/media/manny/Backups/MASM/Flexi/dika_badony.zip
+
+'''dir_path = r'/media/manny/Backups/MASM'
+fl = glob.glob(f"{dir_path}/*/", recursive = True)
+print(fl)
+'''
+'''
+str_file_name = ""
+import os
+import os.path
+import pandas as pd
+
+dir_path = r'/media/manny/Backups/MASM'
+for path, subdirs, files in os.walk(dir_path):
+    for name in files:
+        #print(os.path.join(path, name))
+        str_file_name_rounded = f"('{name}'),"
+        str_file_name += str_file_name_rounded
+
+
+data = list()
+for root, dirs, files in os.walk(dir_path):
+    for filename in files:
+        nm, ext = os.path.splitext(filename)
+        fullpath = os.path.abspath(root)
+        data.append((filename, fullpath))
+df1 = pd.DataFrame(data, columns=['filename', 'fullpath'])
+#print(df1)
+
+
+#print(str_file_name[:-1])
+str_file_name = str_file_name[:-1]
+
+DBConfig = open("/home/manny/plex_transfer/helpers/helper_db_config.json")
+dbconf = json.load(DBConfig)
+DBConnector = dbconf["DBConfigs"]["postgresql"]["DBConnecter"]
+UserName = dbconf["DBConfigs"]["postgresql"]["UserName"]
+Password = dbconf["DBConfigs"]["postgresql"]["Password"]
+ServerOrEndPoint = dbconf["DBConfigs"]["postgresql"]["ServerOrEndPoint"]
+DatabaseName = dbconf["DBConfigs"]["postgresql"]["DatabaseName"]
+engine = create_engine(f'{DBConnector}://{UserName}:{Password}@{ServerOrEndPoint}/{DatabaseName}')
+special_chars = ["(",")","'",","]
+counter = 1
+get_batch_id_query = f"SELECT v FROM (VALUES {str_file_name}) AS vs(v) WHERE v NOT IN (SELECT file_name FROM tbl_File_Batch_info)"
+with engine.connect() as conn:
+    files_to_upload = conn.execute(db.text(get_batch_id_query)).fetchall()
+
+file_with_folder = []
+file_with_folder_txt = "" 
+
+for fl_name in files_to_upload:
+    fl_name_txt = ''.join(i for i in fl_name if not i in special_chars)
+    file_with_folder.append(fl_name_txt)
+  
+
+
+
+filtered_df = df1[df1["filename"].isin(file_with_folder)]
+#print(filtered_df)
+
+#for index, row in filtered_df.iterrows():
+#    print(row["filename"], row["fullpath"])
+
+'''
+#obj_db = dbFunction()
+#obj_db.files_to_upload()
+obj_ftp.upload_to_plex()
+#
+
+'''
+
+ftps = FTP_TLS()
+ftps = ftplib.FTP('192.168.0.168', 'Manny', 'manny')
+
+FTP_Path = "/New"
+ftps.cwd(FTP_Path)
+
+if 'zips' in ftps.nlst():
+     print("hey")
+
+
+
+
+folder = '/New/Flexi/test_recur'
+actual_folder_name = folder.split('/')
+actual_folder_name = actual_folder_name[len(actual_folder_name) - 1]
+print(actual_folder_name)
+if(actual_folder_name in ftps.nlst()):
+     print("exists")
+else:
+     print("not exists")
+
+#path = "/media/manny/Backups/MASM"
+#path = path.replace("/media/manny/Backups/MASM", "/New")
+#print(path)
+
+
+
+df2 = pd.DataFrame(files_dont_exist, columns=['filename'])
+#print(df2)
+
+result = pd.concat([df2, df1], axis=1, join="inner")
+print(result)
+result.to_csv("./result.csv")
+'''
+'''dir_path = r'/media/manny/Backups/MASM/Flexi'
+if os.path.isdir(dir_path):
+    print("Yes")
+else:
+    print("No")'''
+'''
+def get_folder_name(folder_name):
+     folder_n = folder_name.split('/')
+     file_name = folder_n[len(folder_n) - 1]
+     folder = file_name.split('.')
+     folders_name = folder[0]
+     return folders_name
+     
+
+from zipfile import ZipFile
+zip_folder = obj_plex.get_conf_val("zips_folder")
+zip_files = obj_plex.get_files()
+base_folder_name = obj_plex.get_conf_val("base_folder")
+file_list = glob.glob(f"{base_folder_name}/*.zip")
+print(zip_folder, get_folder_name(file_list[0]))
+with ZipFile(file_list[0], 'r') as zObject:
+     zObject.extractall(path=f"{zip_folder}/{get_folder_name(file_list[0])}")
+'''
+'''def list_files(filepath, filetype):
+   paths = []
+   for root, dirs, files in os.walk(filepath):
+      for file in files:
+         if file.lower().endswith(filetype.lower()):
+            paths.append(os.path.join(root, file))
+   return(paths)
+
+base_folder_name = obj_plex.get_conf_val("base_folder")
+my_files_list = list_files(base_folder_name, '.zip')
+for fl in my_files_list:
+    print(fl)'''
+
+
+#obj_plex.extract_zip_files()
